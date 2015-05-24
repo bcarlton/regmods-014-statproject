@@ -14,6 +14,9 @@ output: pdf_document
 ```
 
 
+```
+## Error in eval(expr, envir, enclos): object 'transmission' not found
+```
 
 The purpose of this document is to answer the following question: "Is an automatic or manual transmission better for MPG?"  Based on regression analysis performed on the mtcars dataset, the answer to this question is that a manual transmission gives a better MPG rating.  Specifically, with 95% confidence and with all other variables held constant, a manual transmission automobile is expected to have 2.94 more MPGs than an automatic.
 
@@ -25,6 +28,13 @@ The regression model predicts mpg using transmission type, weight and quarter-mi
 
 1. The dataset only has 32 observations, so it doesn't have the statistical power to merit a model with more than 3 coefficient terms. See this [whitepaper](http://support.minitab.com/en-us/minitab/17/Assistant_Multiple_Regression.pdf) by Minitab statisticians for more information.
 
+```
+## Error in eval(expr, envir, enclos): object 'transmission' not found
+```
+
+```
+## Error in eval(expr, envir, enclos): object 'transmission' not found
+```
 2. Theory about automobile fuel efficiency dictates that weight of the automobile and the engine performance are primary factors. Naturally, weight is included in the model. A base model comparing just MPG and transmission results in highly significant coefficients but a low predictive power, as evidenced by the adjusted $R^{2}$ value of 0.3384589. Furthermore, ANOVA analysis of a model including the addition of weight versus a model that just compared MPG values to transmission results in a highly significant likelihood ratio value of $1.867415 &times; 10<sup>-7</sup>$.
 3. Weight cannot be the only included variable besides transmission in the model.  The model including wt and transmission type only as predictors has high predictive power (adjusted $R^{2}$ = 0.7357889), but its coefficient showing the difference in MPG from automatic to manual is -0.0236152, with a very low significance value of 0.9879146.  Given the non signficance of this coefficient and the fact that there is a clear difference in MPG ratings (as can be seen in Figure 1 in the appendix), the model must be further adjusted.
 
@@ -56,12 +66,18 @@ Thus, while the model predicts just shy of 3 mpg difference between automatic an
 
 ##Appendix
 ###Figure 1
-![plot of chunk figure_1](figure/figure_1-1.png) 
+
+```
+## Error in eval(expr, envir, enclos): object 'transmission' not found
+```
   
 
 
 ###Figure 2
-<img src="figure/figure_2-1.png" title="plot of chunk figure_2" alt="plot of chunk figure_2" style="display: block; margin: auto;" />
+
+```
+## Error in eval(expr, envir, enclos): object 'transmission' not found
+```
 
 ###Figure 3
 ![plot of chunk figure_3](figure/figure_3-1.png) 
