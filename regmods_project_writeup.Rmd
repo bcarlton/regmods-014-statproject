@@ -1,0 +1,123 @@
+---
+title: "Regression Models Course Project - May 2015"
+output: pdf_document
+---
+```{r dependencies, echo=FALSE, warning=FALSE}
+suppressMessages(require(ggplot2) )
+suppressMessages(require(DAAG))
+suppressMessages(require(knitr))
+
+predRSquared <- function(model){
+  #calc PRESS value first
+  pred.resids <- residuals(model)/(1-lm.influence(model)$hat)
+  PRESS <- sum(pred.resids^2)
+  
+  #calc predicted R Squared from PRESS statistic
+  total.sum.squares <- sum(anova(model)$"Sum Sq")
+  pred_r_squared <- 1 - (PRESS/total.sum.squares)
+  return(pred_r_squared)
+}
+```
+
+```{r data_cleaning, echo=FALSE}
+transmission <- vector()
+for (i in 1:length(mtcars$am)) {
+  if (mtcars$am[i] == 0) {
+    transmission[i] = "automatic"
+  } else {
+    transmission[i] = "manual"
+  }
+}
+mtcars$transmission <- factor(transmission)
+rm(transmission)
+mtcars <- mtcars[,-9]
+```
+
+```{r main_model, echo=FALSE}
+main.model <- lm(mpg ~ transmission+wt+qsec, data=mtcars)
+```
+
+The purpose of this document is to answer the following question: "Is an automatic or manual transmission better for MPG?"  Based on regression analysis performed on the mtcars dataset, the answer to this question is that a manual transmission gives a better MPG rating.  Specifically, with 95% confidence and with all other variables held constant, a manual transmission automobile is expected to have `r round(main.model$coef[2],2)` more MPGs than an automatic.
+
+##Model Selection And Analysis
+
+The model is based on the mtcars dataset, which was extracted from the 1974 issue of _Motor Trend_ magazine. A total of 32 observations of 11 variables were collected in this [dataset](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/mtcars.html): rate of fuel consumption and 10 other variables about the automobiles, such as engine displacement, automobile weight and others.
+
+The regression model predicts mpg using transmission type, weight and quarter-mile time as regressors.  Models' predictive power were assessed using adjusted R squared ($R^{2}_{adj}$) values and predictive R squared ($R^{2}_{pred}$) values (obtained from the PRESS statistic), and adding variables were confirmed significant by examining likelihood ratios from ANOVA and by comparing coefficient p-values before and after variable addition.
+
+1. The dataset only has 32 observations, so it doesn't have the statistical power to merit a model with more than 3 coefficient terms. See this [whitepaper](http://support.minitab.com/en-us/minitab/17/Assistant_Multiple_Regression.pdf) by Minitab statisticians for more information.
+```{r base_with_wt, echo=FALSE}
+base <- lm(formula=mpg~transmission, data=mtcars)
+base.w.wt <- update(base, formula=mpg~transmission+wt)
+base.wt.anova <- anova(base, base.w.wt)
+```
+2. Theory about automobile fuel efficiency dictates that weight of the automobile and the engine performance are primary factors. Naturally, weight is included in the model. A base model comparing just MPG and transmission results in highly significant coefficients but a low predictive power, as evidenced by the adjusted $R^{2}$ value of `r summary(base)$adj.r.squared`. Furthermore, ANOVA analysis of a model including the addition of weight versus a model that just compared MPG values to transmission results in a highly significant likelihood ratio value of $`r base.wt.anova$"Pr(>F)"[2]`$.
+3. Weight cannot be the only included variable besides transmission in the model.  The model including wt and transmission type only as predictors has high predictive power (adjusted $R^{2}$ = `r summary(base.w.wt)$adj.r.squared`), but its coefficient showing the difference in MPG from automatic to manual is `r base.w.wt$coef[2]`, with a very low significance value of `r summary(base.w.wt)$coefficients[2,4]`.  Given the non signficance of this coefficient and the fact that there is a clear difference in MPG ratings (as can be seen in Figure 1 in the appendix), the model must be further adjusted.
+```{r wt_and_qsec, echo=FALSE}
+main.anova <- anova(base.w.wt, main.model)
+```
+4. Higher performing engines, i.e., those with higher accelerations typically consume fuel at a much higher rate than those with less performance.  Factors that affect engine performance include the number of cylinders, horsepower and engine size (displacement), and all of these are variables in the mtcars dataset.  Given the size constraints of the model, however, all three cannot be included. But, another variable in the dataset, qsec, or quarter-mile time, assesses engine performance as well.  It shows engine performance by timing how long an automobile takes to travel one-fourth of a mile starting from rest.  Higher performing engines will have smaller qsec values, and vice-versa. The qsec variable is a succinct way to assess engine performance, and so it is added to the model as well. ANOVA shows that the addition of the qsec term is highly significant: the likelihood ratio is $`r main.anova$"Pr(>F)"[2]`$.
+
+\pagebreak
+
+The following table summarizes all coefficients of the model and appropriate companion statistics.  Note that the model uses automatic transmission as the basis for comparison.
+
+```{r model_summary, echo=FALSE, results='markup'}
+summary.df <- data.frame(summary(main.model)$coefficients)
+rownames(summary.df) <- c("Intercept", "Transmission-Manual", "Weight", "Quarter-mile time")
+kable(summary.df, col.names=c("Estimate","Std. Error","t value","Pr(>|t|)"))
+```
+
+This table shows that coefficients of the three regressors are significant; the intercept's high p-value puts it outside the realm of standard accepted significance.  I attribute this observation to the relatively low number of observations in the dataset.  However, this does not affect what is more important: the significant difference in MPG values between automatic and manual transmissions.  The coefficient of manual transmissioned automobiles in this model is, as mentioned above, `r main.model$coef[2]` and meets the 95% confidence scientific standard. Furthermore, it has high $R^2_{adj}$ and predictive $R^2$ values of `r summary(main.model)$adj.r.squared` and `r predRSquared(main.model)`, respectively. Finally, the residuals of this particular model do not appear to show any cause for concern; they show no correlation with regressors and appear to be normally distributed (see Figures 3-6)
+
+##Caveats
+There are, as with any model, certain caveats that must be addressed.
+
+* This dataset is considerably dated.  Its 1974 acquisition date puts it at just over 40 years old, and so, given the many changes in automobile design, engineering and manufacturing technologies in those 4 decades, this model should not be used to make predictions for more modern automobiles.
+
+* The size of this dataset does not allow for a lot of statistical power.  As I mentioned earlier, given only the 32 observations does not give leeway to make models with large numbers of terms.  In fact, in no way does this set meet the recommended minimum of 40 observations needed to make a 1-3 term model whose $R^{2}_{pred}$ value is within 0.2 units of the population $R^2_{pred}$ value 90% of the time.
+
+Thus, while the model predicts just shy of 3 mpg difference between automatic and manual transmission automobiles on average, in no way should this figure be applied to predict current automotive settings.  Many more observations are required to make a more accurate model, and these observations need to be made with more current information.
+\pagebreak
+
+##Appendix
+###Figure 1
+```{r figure_1, echo=FALSE, fig.height=4} 
+exp1data <- ggplot(mtcars, aes(x=factor(transmission), y=mpg))
+exp1 <- exp1data + geom_boxplot(aes(fill=transmission)) +
+  geom_point() +
+  labs(x="Transmission Type", y="Miles Per Gallon")
+exp1
+```
+  
+
+
+###Figure 2
+```{r figure_2, echo=FALSE, fig.height=4, fig.align='center'}
+exp2data <- ggplot(mtcars, aes(x=wt, y=mpg))
+exp2 <- exp2data + 
+  geom_point(aes(shape=transmission, color=transmission, size=3)) +
+  labs(x="Weight(in thousands of lbs)", y="Miles Per Gallon")
+exp2
+```
+
+###Figure 3
+```{r figure_3, echo=FALSE}
+plot(main.model, which=2)
+```
+
+###Figure 4
+```{r figure_4, echo=FALSE}
+plot(main.model, which=3)
+```
+
+###Figure 5
+```{r figure_5, echo=FALSE}
+plot(main.model, which=4)
+```
+
+###Figure 6
+```{r figure_6, echo=FALSE}
+plot(main.model, which=5)
+```
+
