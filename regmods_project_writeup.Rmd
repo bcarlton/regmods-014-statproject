@@ -78,6 +78,9 @@ There are, as with any model, certain caveats that must be addressed.
 * The size of this dataset does not allow for a lot of statistical power.  As I mentioned earlier, given only the 32 observations does not give leeway to make models with large numbers of terms.  In fact, in no way does this set meet the recommended minimum of 40 observations needed to make a 1-3 term model whose $R^{2}_{pred}$ value is within 20% of the population $R^2_{pred}$ value 90% of the time.
 
 Thus, while the model predicts just shy of 3 mpg difference between automatic and manual transmission automobiles on average, in no way should this figure be applied to predict current automotive settings.  Many more observations are required to make a more accurate model, and these observations need to be made with more current information.
+
+
+A link to this document and the supporting figures and R Markdown file that authored this PDF can be found at this [GitHub repository](https://github.com/bcarlton/regmods-014-statproject).
 \pagebreak
 
 ##Appendix
